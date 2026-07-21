@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(`${protocol}://${host}`),
     title: "PlainSync — Open Markdown workspace",
-    description: "A local-first, self-hostable Markdown workspace for people and AI agents.",
+    description: "The self-hostable Markdown workspace that humans and AI agents can share.",
     applicationName: "PlainSync",
     manifest: "/manifest.webmanifest",
     icons: {
@@ -23,14 +23,14 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       title: "PlainSync — Markdown that stays yours",
-      description: "Open, edit, share, and self-host plain Markdown documents.",
+      description: "One portable Markdown document for agents to write and humans to review.",
       type: "website",
       images: [{ url: "/og.png", width: 1731, height: 909, alt: "PlainSync — Markdown that stays yours" }],
     },
     twitter: {
       card: "summary_large_image",
       title: "PlainSync — Markdown that stays yours",
-      description: "Open, edit, share, and self-host plain Markdown documents.",
+      description: "One portable Markdown document for agents to write and humans to review.",
       images: ["/og.png"],
     },
   };

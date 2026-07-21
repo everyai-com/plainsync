@@ -1,0 +1,47 @@
+name: Feature proposal
+description: Propose a focused product, API, developer, or self-hosting improvement.
+title: "[Proposal]: "
+labels: [enhancement, needs-triage]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the user or developer problem before proposing an implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Desired workflow
+      description: What should a person, agent, integrator, or operator be able to do?
+    validations:
+      required: true
+  - type: textarea
+    id: approach
+    attributes:
+      label: Possible approach
+      description: Optional. Include alternatives and tradeoffs when known.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Primary area
+      options:
+        - Editor experience
+        - Agent or REST API
+        - Collaboration and CRDT
+        - Self-hosting
+        - Storage or authentication
+        - CLI, Git, SDK, or MCP
+        - Documentation
+    validations:
+      required: true
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: Project fit
+      options:
+        - label: The proposal keeps exported Markdown portable.
+          required: true
+        - label: The proposal can work for self-hosted users.
+          required: true

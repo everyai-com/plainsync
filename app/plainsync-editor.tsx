@@ -156,9 +156,11 @@ const welcomeDocument: LocalDocument = {
 
 > Your local drafts stay in this browser. Shared documents sync through your own PlainSync server.
 
-## Agent-friendly by design
+## One document for agents and humans
 
-PlainSync stores plain Markdown rather than a proprietary document format. That means Codex, Claude, scripts, Git, and humans can work on the same artifact.
+Agents naturally write Markdown. Humans naturally want comments, history, and a comfortable editor. PlainSync gives both sides the same artifact instead of copying between a chat, Git, and a proprietary document.
+
+Use it for agent-written reports, product specs, release notes, research, documentation, or any workflow where a person must review machine-generated text.
 
 \`\`\`bash
 # The self-hosted alpha runs with one command
@@ -989,7 +991,7 @@ export function PlainSyncEditor() {
 
         <div className="sidebar-footer">
           <button onClick={() => void installApp()}><Laptop size={16} /> Install desktop app</button>
-          <a href="https://github.com/everyai-com/plainsync" target="_blank" rel="noreferrer"><Braces size={16} /> Apache 2.0 source</a>
+          <a href="https://github.com/everyai-com/plainsync" target="_blank" rel="noreferrer"><Braces size={16} /> MIT source</a>
         </div>
       </aside>
 
