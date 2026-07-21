@@ -37,8 +37,11 @@ import {
   PencilLine,
   Quote,
   Search,
+  Server,
   Share2,
   Send,
+  ShieldCheck,
+  Sparkles,
   Sun,
   Users,
   X,
@@ -127,15 +130,12 @@ type EditorMode = "write" | "split" | "read";
 type SyncState = "local" | "saved" | "saving" | "offline";
 type DetailPanel = "share" | "comments" | "history" | null;
 
-type InstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
-
 const STORAGE_KEY = "plainsync.documents.v1";
 const ACTIVE_KEY = "plainsync.active-document.v1";
 const THEME_KEY = "plainsync.theme.v1";
 const PROFILE_KEY = "plainsync.profile.v1";
+const SOURCE_URL = "https://github.com/everyai-com/plainsync";
+const DESKTOP_RELEASES_URL = `${SOURCE_URL}/releases/latest`;
 const REMOTE_ORIGIN = { plainsync: "remote" };
 const presenceColors = ["#2e6a51", "#b56235", "#5a62a8", "#9b4770", "#337b8d", "#82672c"];
 
@@ -152,13 +152,15 @@ const welcomeDocument: LocalDocument = {
 - Import any \`.md\` file with **Open file**
 - Use **Share** to create a live document link
 - Export clean Markdown whenever you want
-- Install PlainSync as an app on macOS or Windows
+- Download PlainSync for macOS or Windows
 
-> Your local drafts stay in this browser. Shared documents sync through your own PlainSync server.
+> Local drafts stay on this device. Shared documents sync through the PlainSync server you choose.
 
-## Agent-friendly by design
+## One document for agents and humans
 
-PlainSync stores plain Markdown rather than a proprietary document format. That means Codex, Claude, scripts, Git, and humans can work on the same artifact.
+Agents naturally write Markdown. Humans naturally want comments, history, and a comfortable editor. PlainSync gives both sides the same artifact instead of copying between a chat, Git, and a proprietary document.
+
+Use it for agent-written reports, product specs, release notes, research, documentation, or any workflow where a person must review machine-generated text.
 
 \`\`\`bash
 # The self-hosted alpha runs with one command
@@ -256,12 +258,12 @@ export function PlainSyncEditor() {
   const [activeId, setActiveId] = useState(welcomeDocument.id);
   const [ready, setReady] = useState(false);
   const [mode, setMode] = useState<EditorMode>("split");
+  const [welcomeView, setWelcomeView] = useState<"overview" | "document">("overview");
   const [query, setQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [syncState, setSyncState] = useState<SyncState>("local");
   const [toast, setToast] = useState<string | null>(null);
-  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [detailPanel, setDetailPanel] = useState<DetailPanel>(null);
   const [comments, setComments] = useState<SharedComment[]>([]);
@@ -278,6 +280,7 @@ export function PlainSyncEditor() {
   const presenceColor = presenceColors[0];
 
   const activeDocument = documents.find((document) => document.id === activeId) ?? documents[0];
+  const isWelcomeOverview = activeDocument?.id === welcomeDocument.id && welcomeView === "overview";
   const activeRemoteId = activeDocument?.remote?.id;
   const activeRemoteToken = activeDocument?.remote?.token;
   const activeRemoteRole = activeDocument?.remote?.role;
@@ -334,7 +337,9 @@ export function PlainSyncEditor() {
         const parsed = stored ? (JSON.parse(stored) as LocalDocument[]) : null;
         if (parsed?.length) {
           setDocuments(parsed);
-          setActiveId(localStorage.getItem(ACTIVE_KEY) ?? parsed[0].id);
+          const storedActiveId = localStorage.getItem(ACTIVE_KEY) ?? parsed[0].id;
+          setActiveId(storedActiveId);
+          if (storedActiveId !== welcomeDocument.id) setWelcomeView("document");
         }
         const storedTheme = localStorage.getItem(THEME_KEY);
         const preferredDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -348,17 +353,11 @@ export function PlainSyncEditor() {
       setReady(true);
     });
 
-    const onInstall = (event: Event) => {
-      event.preventDefault();
-      setInstallPrompt(event as InstallPromptEvent);
-    };
-    window.addEventListener("beforeinstallprompt", onInstall);
     if ("serviceWorker" in navigator) {
       void navigator.serviceWorker.register("/sw.js");
     }
     return () => {
       window.cancelAnimationFrame(hydrationFrame);
-      window.removeEventListener("beforeinstallprompt", onInstall);
     };
   }, []);
 
@@ -429,6 +428,7 @@ export function PlainSyncEditor() {
         const existing = current.find((document) => document.remote?.id === server.id);
         if (existing) {
           setActiveId(existing.id);
+          setWelcomeView("document");
           return current.map((document) =>
             document.id === existing.id
               ? documentFromServer(server, link.token, role, existing.id)
@@ -437,6 +437,7 @@ export function PlainSyncEditor() {
         }
         const imported = documentFromServer(server, link.token, role);
         setActiveId(imported.id);
+        setWelcomeView("document");
         return [imported, ...current];
       });
       setSyncState("saved");
@@ -603,6 +604,7 @@ export function PlainSyncEditor() {
     setDocuments((current) => [document, ...current]);
     setActiveId(document.id);
     setMode("split");
+    setWelcomeView("document");
     setSidebarOpen(false);
     window.setTimeout(() => editorRef.current?.view?.focus(), 50);
   }, []);
@@ -751,16 +753,6 @@ export function PlainSyncEditor() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [exportDocument, shareDocument]);
-
-  const installApp = async () => {
-    if (!installPrompt) {
-      showToast("Use your browser menu and choose ‘Install PlainSync’.");
-      return;
-    }
-    await installPrompt.prompt();
-    await installPrompt.userChoice;
-    setInstallPrompt(null);
-  };
 
   const loadComments = useCallback(async () => {
     const remote = documentsRef.current.find((document) => document.id === activeId)?.remote;
@@ -948,7 +940,7 @@ export function PlainSyncEditor() {
         <div className="sidebar-header">
           <div className="brand-lockup">
             <div className="brand-mark"><FileText size={18} /></div>
-            <div><strong>PlainSync</strong><span>Open Markdown workspace</span></div>
+            <div><strong>PlainSync</strong><span>People + agents + Markdown</span></div>
           </div>
           <button className="icon-button mobile-only" aria-label="Close sidebar" onClick={() => setSidebarOpen(false)}>
             <X size={18} />
@@ -975,7 +967,12 @@ export function PlainSyncEditor() {
             <button
               className={`document-row ${document.id === activeId ? "active" : ""}`}
               key={document.id}
-              onClick={() => { setActiveId(document.id); setDetailPanel(null); setSidebarOpen(false); }}
+              onClick={() => {
+                setActiveId(document.id);
+                setWelcomeView("document");
+                setDetailPanel(null);
+                setSidebarOpen(false);
+              }}
             >
               <span className="document-icon"><FileText size={15} /></span>
               <span className="document-copy">
@@ -988,8 +985,12 @@ export function PlainSyncEditor() {
         </div>
 
         <div className="sidebar-footer">
-          <button onClick={() => void installApp()}><Laptop size={16} /> Install desktop app</button>
-          <a href="https://github.com/everyai-com/plainsync" target="_blank" rel="noreferrer"><Braces size={16} /> Apache 2.0 source</a>
+          <div className="workspace-health">
+            <span><ShieldCheck size={13} /> MIT</span>
+            <span><Server size={13} /> Self-host</span>
+          </div>
+          <a href={DESKTOP_RELEASES_URL} target="_blank" rel="noreferrer"><Laptop size={16} /> Mac & Windows apps</a>
+          <a href={SOURCE_URL} target="_blank" rel="noreferrer"><Braces size={16} /> Fork the MIT source</a>
         </div>
       </aside>
 
@@ -1006,7 +1007,10 @@ export function PlainSyncEditor() {
                 disabled={!canEdit}
                 onChange={(event) => updateDocument(activeDocument.id, { title: event.target.value })}
               />
-              <SyncStatus state={activeDocument.remote ? syncState : "local"} />
+              <div className="title-meta">
+                <SyncStatus state={activeDocument.remote ? syncState : "local"} />
+                {activeDocument.remote ? <span>{activeDocument.remote.role}</span> : <span>private draft</span>}
+              </div>
             </div>
           </div>
 
@@ -1049,62 +1053,111 @@ export function PlainSyncEditor() {
           </div>
         </header>
 
-        <div className="commandbar">
-          <div className="format-tools" aria-label="Markdown formatting">
-            <ToolButton label="Bold" disabled={!canEdit} onClick={() => wrapSelection("**")}><Bold size={16} /></ToolButton>
-            <ToolButton label="Italic" disabled={!canEdit} onClick={() => wrapSelection("_")}><Italic size={16} /></ToolButton>
-            <ToolButton label="Heading" disabled={!canEdit} onClick={() => prefixLine("## ")}><Heading2 size={17} /></ToolButton>
-            <span className="tool-divider" />
-            <ToolButton label="Link" disabled={!canEdit} onClick={() => wrapSelection("[", "](https://)", "link text")}><LinkIcon size={16} /></ToolButton>
-            <ToolButton label="Inline code" disabled={!canEdit} onClick={() => wrapSelection("`")}><Code2 size={16} /></ToolButton>
-            <ToolButton label="Quote" disabled={!canEdit} onClick={() => prefixLine("> ")}><Quote size={16} /></ToolButton>
-            <ToolButton label="List" disabled={!canEdit} onClick={() => prefixLine("- ")}><List size={17} /></ToolButton>
-            <ToolButton label="Task" disabled={!canEdit} onClick={() => prefixLine("- [ ] ")}><ListChecks size={17} /></ToolButton>
-          </div>
+        {isWelcomeOverview ? (
+          <section className="welcome-workspace" aria-label="PlainSync start workspace">
+            <div className="welcome-hero">
+              <div className="welcome-copy">
+                <div className="welcome-eyebrow"><Sparkles size={15} /> Open source · MIT</div>
+                <h1>Markdown for people and agents.</h1>
+                <p>Use it online, download the desktop app, or self-host it. Your documents stay plain Markdown.</p>
+                <div className="welcome-actions">
+                  <button className="welcome-primary" onClick={() => addDocument()}>
+                    <FilePlus2 size={17} /> Start writing
+                  </button>
+                  <a className="welcome-secondary" href={DESKTOP_RELEASES_URL} target="_blank" rel="noreferrer">
+                    <Download size={17} /> Download app
+                  </a>
+                  <a className="welcome-tertiary" href={SOURCE_URL} target="_blank" rel="noreferrer">
+                    <Braces size={17} /> View source
+                  </a>
+                </div>
+              </div>
+              <div className="welcome-terminal" aria-label="Self-host command preview">
+                <div><span /> <span /> <span /></div>
+                <code>docker compose up -d</code>
+                <small>Runs on your VPS, laptop, or Cloudflare-ready stack</small>
+              </div>
+            </div>
 
-          <div className="mode-switcher" aria-label="Editor view">
-            <button className={mode === "write" ? "active" : ""} onClick={() => setMode("write")}><PencilLine size={15} /><span>Write</span></button>
-            <button className={mode === "split" ? "active" : ""} onClick={() => setMode("split")}><Columns2 size={15} /><span>Split</span></button>
-            <button className={mode === "read" ? "active" : ""} onClick={() => setMode("read")}><BookOpen size={15} /><span>Read</span></button>
-          </div>
-        </div>
+            <div className="workflow-strip" aria-label="PlainSync workflow">
+              <article><BookOpen size={18} /><strong>Use online</strong><span>Open it and start with no setup.</span></article>
+              <article><Laptop size={18} /><strong>Download</strong><span>Native installers for Mac and Windows.</span></article>
+              <article><Server size={18} /><strong>Make it yours</strong><span>Fork, self-host, rebrand, or build on the API.</span></article>
+            </div>
 
-        <div className={`editor-grid mode-${mode}`}>
-          <section className="source-pane" aria-label="Markdown source">
-            <CodeMirror
-              key={`${activeDocument.id}:${collaboration?.documentId ?? "local"}`}
-              ref={editorRef}
-              value={activeDocument.content}
-              onChange={(content) => { if (canEdit) updateDocument(activeDocument.id, { content }); }}
-              extensions={extensions}
-              theme={theme}
-              basicSetup={{
-                lineNumbers: false,
-                foldGutter: false,
-                highlightActiveLineGutter: false,
-                bracketMatching: true,
-                closeBrackets: true,
-                autocompletion: true,
-                highlightSelectionMatches: true,
-              }}
-              aria-label="Markdown editor"
-            />
+            <div className="use-case-grid">
+              <article><strong>One shared format</strong><span>Agents write it. People review it. Everyone keeps the same `.md` file.</span></article>
+              <article><strong>Local by default</strong><span>Drafts stay on your device until you choose to share.</span></article>
+              <article><strong>No lock-in</strong><span>Import, edit, and export ordinary Markdown whenever you want.</span></article>
+              <article><strong>Commercial-friendly</strong><span>MIT licensed for personal products, teams, clients, and businesses.</span></article>
+            </div>
           </section>
+        ) : (
+          <>
+            <div className="commandbar">
+              <div className="format-tools" aria-label="Markdown formatting">
+                <ToolButton label="Bold" disabled={!canEdit} onClick={() => wrapSelection("**")}><Bold size={16} /></ToolButton>
+                <ToolButton label="Italic" disabled={!canEdit} onClick={() => wrapSelection("_")}><Italic size={16} /></ToolButton>
+                <ToolButton label="Heading" disabled={!canEdit} onClick={() => prefixLine("## ")}><Heading2 size={17} /></ToolButton>
+                <span className="tool-divider" />
+                <ToolButton label="Link" disabled={!canEdit} onClick={() => wrapSelection("[", "](https://)", "link text")}><LinkIcon size={16} /></ToolButton>
+                <ToolButton label="Inline code" disabled={!canEdit} onClick={() => wrapSelection("`")}><Code2 size={16} /></ToolButton>
+                <ToolButton label="Quote" disabled={!canEdit} onClick={() => prefixLine("> ")}><Quote size={16} /></ToolButton>
+                <ToolButton label="List" disabled={!canEdit} onClick={() => prefixLine("- ")}><List size={17} /></ToolButton>
+                <ToolButton label="Task" disabled={!canEdit} onClick={() => prefixLine("- [ ] ")}><ListChecks size={17} /></ToolButton>
+              </div>
 
-          <section className="preview-pane" aria-label="Rendered preview">
-            <article className="markdown-body">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeSanitize]}
-                components={{
-                  a: ({ children, href }) => <a href={href} target="_blank" rel="noreferrer">{children}</a>,
-                }}
-              >
-                {activeDocument.content}
-              </ReactMarkdown>
-            </article>
-          </section>
-        </div>
+              <div className="mode-switcher" aria-label="Editor view">
+                <button className={mode === "write" ? "active" : ""} onClick={() => setMode("write")}><PencilLine size={15} /><span>Write</span></button>
+                <button className={mode === "split" ? "active" : ""} onClick={() => setMode("split")}><Columns2 size={15} /><span>Split</span></button>
+                <button className={mode === "read" ? "active" : ""} onClick={() => setMode("read")}><BookOpen size={15} /><span>Read</span></button>
+              </div>
+            </div>
+
+            <div className={`editor-grid mode-${mode}`}>
+              <section className="source-pane" aria-label="Markdown source">
+                <div className="pane-heading"><Code2 size={14} /><span>Source</span></div>
+                <div className="editor-host">
+                  <CodeMirror
+                    key={`${activeDocument.id}:${collaboration?.documentId ?? "local"}`}
+                    ref={editorRef}
+                    value={activeDocument.content}
+                    onChange={(content) => { if (canEdit) updateDocument(activeDocument.id, { content }); }}
+                    extensions={extensions}
+                    theme={theme}
+                    basicSetup={{
+                      lineNumbers: false,
+                      foldGutter: false,
+                      highlightActiveLineGutter: false,
+                      bracketMatching: true,
+                      closeBrackets: true,
+                      autocompletion: true,
+                      highlightSelectionMatches: true,
+                    }}
+                    aria-label="Markdown editor"
+                  />
+                </div>
+              </section>
+
+              <section className="preview-pane" aria-label="Rendered preview">
+                <div className="pane-heading"><BookOpen size={14} /><span>Preview</span></div>
+                <div className="preview-scroll">
+                  <article className="markdown-body">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeSanitize]}
+                      components={{
+                        a: ({ children, href }) => <a href={href} target="_blank" rel="noreferrer">{children}</a>,
+                      }}
+                    >
+                      {activeDocument.content}
+                    </ReactMarkdown>
+                  </article>
+                </div>
+              </section>
+            </div>
+          </>
+        )}
 
         <footer className="statusbar">
           <div><span>Markdown</span><span>UTF-8</span></div>

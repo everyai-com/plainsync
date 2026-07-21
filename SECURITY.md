@@ -2,7 +2,7 @@
 
 PlainSync is an alpha and should not yet be used for regulated or highly sensitive documents.
 
-Report vulnerabilities privately to the maintainers rather than opening a public issue. A project security email should be added before the repository is announced publicly.
+Report vulnerabilities through [GitHub private vulnerability reporting](https://github.com/everyai-com/plainsync/security/advisories/new) rather than opening a public issue. This creates a private maintainer discussion and supports coordinated fixes and advisories.
 
 When reporting, include the affected version, deployment shape, reproduction steps, and expected impact. Maintainers should acknowledge a complete report within three working days and publish a fix or mitigation as quickly as practical.
 

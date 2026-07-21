@@ -1,0 +1,69 @@
+name: Bug report
+description: Report reproducible PlainSync behavior that is broken or surprising.
+title: "[Bug]: "
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve PlainSync. Do not include complete invitation links or document keys.
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment
+      options:
+        - Local development
+        - Docker or VPS
+        - Cloudflare Workers
+        - Installed PWA
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: v0.2.0 or a commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Include the smallest sequence that reliably shows the problem.
+      placeholder: |
+        1. Create a document…
+        2. Open…
+        3. Observe…
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and operating system
+      placeholder: Edge 134 on Windows 11, Safari 19 on macOS, etc.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Sanitized logs, screenshots, or related issues. Never paste invitation keys.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues for this problem.
+          required: true
+        - label: I removed private content and complete invitation links.
+          required: true

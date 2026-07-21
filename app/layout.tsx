@@ -13,8 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const protocol = requestHeaders.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   return {
     metadataBase: new URL(`${protocol}://${host}`),
-    title: "PlainSync — Open Markdown workspace",
-    description: "A local-first, self-hostable Markdown workspace for people and AI agents.",
+    title: "PlainSync — Markdown for people and agents",
+    description: "Use PlainSync online, download it for Mac or Windows, or self-host the MIT-licensed Markdown workspace.",
     applicationName: "PlainSync",
     manifest: "/manifest.webmanifest",
     icons: {
@@ -22,15 +22,15 @@ export async function generateMetadata(): Promise<Metadata> {
       apple: "/icon-192.png",
     },
     openGraph: {
-      title: "PlainSync — Markdown that stays yours",
-      description: "Open, edit, share, and self-host plain Markdown documents.",
+      title: "PlainSync — Markdown for people and agents",
+      description: "Use it online, download the desktop app, or self-host it. Your documents stay plain Markdown.",
       type: "website",
       images: [{ url: "/og.png", width: 1731, height: 909, alt: "PlainSync — Markdown that stays yours" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "PlainSync — Markdown that stays yours",
-      description: "Open, edit, share, and self-host plain Markdown documents.",
+      title: "PlainSync — Markdown for people and agents",
+      description: "Use it online, download the desktop app, or self-host it. Your documents stay plain Markdown.",
       images: ["/og.png"],
     },
   };
