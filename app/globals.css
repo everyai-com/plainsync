@@ -763,7 +763,8 @@ button {
   margin-top: 24px;
 }
 
-.welcome-actions button {
+.welcome-actions button,
+.welcome-actions a {
   display: inline-flex;
   height: 40px;
   align-items: center;
@@ -773,6 +774,7 @@ button {
   border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -1623,7 +1625,8 @@ button {
     line-height: 1.04;
   }
 
-  .welcome-actions button {
+  .welcome-actions button,
+  .welcome-actions a {
     width: 100%;
   }
 

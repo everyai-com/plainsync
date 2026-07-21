@@ -1,9 +1,12 @@
 {
   "name": "plainsync",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "The self-hostable Markdown workspace that humans and AI agents can share.",
+  "description": "Open-source Markdown for people and AI agents.",
   "license": "MIT",
+  "workspaces": [
+    "desktop"
+  ],
   "engines": {
     "node": ">=22.13.0"
   },
@@ -15,6 +18,9 @@
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run lint && npm test",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "desktop": "npm --workspace plainsync-desktop run start",
+    "desktop:pack": "npm --workspace plainsync-desktop run pack",
+    "desktop:dist": "npm --workspace plainsync-desktop run dist",
     "db:generate": "drizzle-kit generate",
     "deploy:cloudflare": "node scripts/deploy-cloudflare.mjs"
   },
@@ -36,8 +42,8 @@
     "yjs": "^13.6.31"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "1.37.1",
-    "@cloudflare/workers-types": "^4.20260702.1",
+    "@cloudflare/vite-plugin": "^1.46.0",
+    "@cloudflare/workers-types": "^5.20260721.1",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
@@ -51,8 +57,8 @@
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
     "vinext": "0.0.50",
-    "vite": "8.0.13",
-    "wrangler": "4.92.0"
+    "vite": "^8.1.5",
+    "wrangler": "^4.113.0"
   },
   "type": "module",
   "overrides": {

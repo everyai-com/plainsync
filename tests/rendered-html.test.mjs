@@ -26,22 +26,25 @@ test("server-renders the PlainSync application shell and metadata", async () => 
   assert.equal(response.headers.get("referrer-policy"), "no-referrer");
 
   const html = await response.text();
-  assert.match(html, /<title>PlainSync — Open Markdown workspace<\/title>/i);
-  assert.match(html, /The self-hostable Markdown workspace that humans and AI agents can share/);
+  assert.match(html, /<title>PlainSync — Markdown for people and agents<\/title>/i);
+  assert.match(html, /download it for Mac or Windows/i);
   assert.match(html, /Loading PlainSync/);
   assert.match(html, /manifest\.webmanifest/);
   assert.match(html, /og\.png/);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/i);
 });
 
-test("ships installable and self-hosting surfaces", async () => {
-  const [manifest, compose, dockerfile, packageJson, license, readme] = await Promise.all([
+test("ships desktop, browser, and self-hosting surfaces", async () => {
+  const [manifest, compose, dockerfile, packageJson, license, readme, desktopMain, desktopPackage, desktopWorkflow] = await Promise.all([
     readFile(new URL("../public/manifest.webmanifest", import.meta.url), "utf8"),
     readFile(new URL("../compose.yaml", import.meta.url), "utf8"),
     readFile(new URL("../Dockerfile", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8"),
     readFile(new URL("../LICENSE", import.meta.url), "utf8"),
     readFile(new URL("../README.md", import.meta.url), "utf8"),
+    readFile(new URL("../desktop/main.cjs", import.meta.url), "utf8"),
+    readFile(new URL("../desktop/package.json", import.meta.url), "utf8"),
+    readFile(new URL("../.github/workflows/desktop-release.yml", import.meta.url), "utf8"),
   ]);
 
   const parsedManifest = JSON.parse(manifest);
@@ -54,10 +57,22 @@ test("ships installable and self-hosting surfaces", async () => {
   const parsedPackage = JSON.parse(packageJson);
   assert.equal(parsedPackage.license, "MIT");
   assert.ok(parsedPackage.scripts.check);
+  assert.ok(parsedPackage.scripts["desktop:dist"]);
+  const parsedDesktopPackage = JSON.parse(desktopPackage);
+  assert.equal(parsedDesktopPackage.main, "main.cjs");
+  assert.equal(parsedDesktopPackage.build.appId, "com.everyai.plainsync");
+  assert.equal(parsedDesktopPackage.version, parsedPackage.version);
   assert.match(packageJson, /deploy:cloudflare/);
   assert.match(license, /^MIT License/);
-  assert.match(readme, /## The problem/);
+  assert.match(readme, /## Why PlainSync/);
   assert.match(readme, /docs\/DEVELOPER-GUIDE\.md/);
+  assert.match(readme, /Download for Mac or Windows/);
+  assert.match(desktopMain, /contextIsolation: true/);
+  assert.match(desktopMain, /nodeIntegration: false/);
+  assert.match(desktopMain, /setPermissionRequestHandler/);
+  assert.match(desktopWorkflow, /macos-latest/);
+  assert.match(desktopWorkflow, /windows-latest/);
+  assert.match(desktopWorkflow, /gh release create/);
 
   await Promise.all([
     access(new URL("../public/icon-192.png", import.meta.url)),
@@ -66,6 +81,8 @@ test("ships installable and self-hosting surfaces", async () => {
     access(new URL("../public/sw.js", import.meta.url)),
     access(new URL("../docs/USE-CASES.md", import.meta.url)),
     access(new URL("../docs/DEVELOPER-GUIDE.md", import.meta.url)),
+    access(new URL("../docs/DESKTOP.md", import.meta.url)),
+    access(new URL("../desktop/settings.html", import.meta.url)),
     access(new URL("../.github/ISSUE_TEMPLATE/bug_report.yml", import.meta.url)),
     access(new URL("../.github/pull_request_template.md", import.meta.url)),
   ]);

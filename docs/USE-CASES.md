@@ -52,7 +52,7 @@ PlainSync is not yet a stable embeddable React package. Today, the supported int
 
 **Problem:** Someone wants a focused Markdown editor without converting files into an application-specific database.
 
-**PlainSync pattern:** Install the PWA from Chrome or Edge, open and save normal `.md` files, and keep browser drafts local. Sharing is optional rather than the default.
+**PlainSync pattern:** Download the native macOS or Windows app, open and save normal `.md` files, and keep drafts local. The desktop app can use hosted PlainSync or connect to a self-hosted server. The installable browser PWA remains available as a lightweight alternative.
 
 ## When PlainSync is not the right tool
 

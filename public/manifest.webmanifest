@@ -1,7 +1,7 @@
 {
   "name": "PlainSync",
   "short_name": "PlainSync",
-  "description": "The self-hostable Markdown workspace that humans and AI agents can share.",
+  "description": "Open-source Markdown for people and AI agents.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#fbfaf7",

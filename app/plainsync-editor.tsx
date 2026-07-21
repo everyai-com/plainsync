@@ -9,7 +9,6 @@ import * as Y from "yjs";
 import {
   Bold,
   BookOpen,
-  Bot,
   Braces,
   Camera,
   Check,
@@ -45,7 +44,6 @@ import {
   Sparkles,
   Sun,
   Users,
-  Workflow,
   X,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -132,15 +130,12 @@ type EditorMode = "write" | "split" | "read";
 type SyncState = "local" | "saved" | "saving" | "offline";
 type DetailPanel = "share" | "comments" | "history" | null;
 
-type InstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
-
 const STORAGE_KEY = "plainsync.documents.v1";
 const ACTIVE_KEY = "plainsync.active-document.v1";
 const THEME_KEY = "plainsync.theme.v1";
 const PROFILE_KEY = "plainsync.profile.v1";
+const SOURCE_URL = "https://github.com/everyai-com/plainsync";
+const DESKTOP_RELEASES_URL = `${SOURCE_URL}/releases/latest`;
 const REMOTE_ORIGIN = { plainsync: "remote" };
 const presenceColors = ["#2e6a51", "#b56235", "#5a62a8", "#9b4770", "#337b8d", "#82672c"];
 
@@ -157,9 +152,9 @@ const welcomeDocument: LocalDocument = {
 - Import any \`.md\` file with **Open file**
 - Use **Share** to create a live document link
 - Export clean Markdown whenever you want
-- Install PlainSync as an app on macOS or Windows
+- Download PlainSync for macOS or Windows
 
-> Your local drafts stay in this browser. Shared documents sync through your own PlainSync server.
+> Local drafts stay on this device. Shared documents sync through the PlainSync server you choose.
 
 ## One document for agents and humans
 
@@ -269,7 +264,6 @@ export function PlainSyncEditor() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [syncState, setSyncState] = useState<SyncState>("local");
   const [toast, setToast] = useState<string | null>(null);
-  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [detailPanel, setDetailPanel] = useState<DetailPanel>(null);
   const [comments, setComments] = useState<SharedComment[]>([]);
@@ -359,17 +353,11 @@ export function PlainSyncEditor() {
       setReady(true);
     });
 
-    const onInstall = (event: Event) => {
-      event.preventDefault();
-      setInstallPrompt(event as InstallPromptEvent);
-    };
-    window.addEventListener("beforeinstallprompt", onInstall);
     if ("serviceWorker" in navigator) {
       void navigator.serviceWorker.register("/sw.js");
     }
     return () => {
       window.cancelAnimationFrame(hydrationFrame);
-      window.removeEventListener("beforeinstallprompt", onInstall);
     };
   }, []);
 
@@ -766,16 +754,6 @@ export function PlainSyncEditor() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [exportDocument, shareDocument]);
 
-  const installApp = async () => {
-    if (!installPrompt) {
-      showToast("Use your browser menu and choose ‘Install PlainSync’.");
-      return;
-    }
-    await installPrompt.prompt();
-    await installPrompt.userChoice;
-    setInstallPrompt(null);
-  };
-
   const loadComments = useCallback(async () => {
     const remote = documentsRef.current.find((document) => document.id === activeId)?.remote;
     if (!remote) return;
@@ -962,7 +940,7 @@ export function PlainSyncEditor() {
         <div className="sidebar-header">
           <div className="brand-lockup">
             <div className="brand-mark"><FileText size={18} /></div>
-            <div><strong>PlainSync</strong><span>Open Markdown workspace</span></div>
+            <div><strong>PlainSync</strong><span>People + agents + Markdown</span></div>
           </div>
           <button className="icon-button mobile-only" aria-label="Close sidebar" onClick={() => setSidebarOpen(false)}>
             <X size={18} />
@@ -1011,8 +989,8 @@ export function PlainSyncEditor() {
             <span><ShieldCheck size={13} /> MIT</span>
             <span><Server size={13} /> Self-host</span>
           </div>
-          <button onClick={() => void installApp()}><Laptop size={16} /> Install desktop app</button>
-          <a href="https://github.com/everyai-com/plainsync" target="_blank" rel="noreferrer"><Braces size={16} /> MIT source</a>
+          <a href={DESKTOP_RELEASES_URL} target="_blank" rel="noreferrer"><Laptop size={16} /> Mac & Windows apps</a>
+          <a href={SOURCE_URL} target="_blank" rel="noreferrer"><Braces size={16} /> Fork the MIT source</a>
         </div>
       </aside>
 
@@ -1079,19 +1057,19 @@ export function PlainSyncEditor() {
           <section className="welcome-workspace" aria-label="PlainSync start workspace">
             <div className="welcome-hero">
               <div className="welcome-copy">
-                <div className="welcome-eyebrow"><Sparkles size={15} /> Open Markdown workspace</div>
-                <h1>Plain text source. Document editor feel.</h1>
-                <p>Write, review, share, and self-host Markdown documents without trapping the source in a proprietary editor.</p>
+                <div className="welcome-eyebrow"><Sparkles size={15} /> Open source · MIT</div>
+                <h1>Markdown for people and agents.</h1>
+                <p>Use it online, download the desktop app, or self-host it. Your documents stay plain Markdown.</p>
                 <div className="welcome-actions">
                   <button className="welcome-primary" onClick={() => addDocument()}>
-                    <FilePlus2 size={17} /> New document
+                    <FilePlus2 size={17} /> Start writing
                   </button>
-                  <button className="welcome-secondary" onClick={() => fileInputRef.current?.click()}>
-                    <FolderOpen size={17} /> Open .md
-                  </button>
-                  <button className="welcome-tertiary" onClick={() => setWelcomeView("document")}>
-                    <BookOpen size={17} /> View sample
-                  </button>
+                  <a className="welcome-secondary" href={DESKTOP_RELEASES_URL} target="_blank" rel="noreferrer">
+                    <Download size={17} /> Download app
+                  </a>
+                  <a className="welcome-tertiary" href={SOURCE_URL} target="_blank" rel="noreferrer">
+                    <Braces size={17} /> View source
+                  </a>
                 </div>
               </div>
               <div className="welcome-terminal" aria-label="Self-host command preview">
@@ -1102,16 +1080,16 @@ export function PlainSyncEditor() {
             </div>
 
             <div className="workflow-strip" aria-label="PlainSync workflow">
-              <article><Bot size={18} /><strong>Agent draft</strong><span>Markdown stays the system of record.</span></article>
-              <article><Users size={18} /><strong>Human review</strong><span>Comments, roles, preview, and history.</span></article>
-              <article><Workflow size={18} /><strong>Ship anywhere</strong><span>Export .md or keep it live on your server.</span></article>
+              <article><BookOpen size={18} /><strong>Use online</strong><span>Open it and start with no setup.</span></article>
+              <article><Laptop size={18} /><strong>Download</strong><span>Native installers for Mac and Windows.</span></article>
+              <article><Server size={18} /><strong>Make it yours</strong><span>Fork, self-host, rebrand, or build on the API.</span></article>
             </div>
 
             <div className="use-case-grid">
-              <article><strong>Product specs</strong><span>Turn agent output into reviewable specs without copy-paste drift.</span></article>
-              <article><strong>Research reports</strong><span>Keep citations, tables, and long-form notes in portable Markdown.</span></article>
-              <article><strong>Docs-as-code</strong><span>Let non-Git users review the same source developers commit.</span></article>
-              <article><strong>Private teams</strong><span>Run the app yourself when documents cannot live in hosted SaaS.</span></article>
+              <article><strong>One shared format</strong><span>Agents write it. People review it. Everyone keeps the same `.md` file.</span></article>
+              <article><strong>Local by default</strong><span>Drafts stay on your device until you choose to share.</span></article>
+              <article><strong>No lock-in</strong><span>Import, edit, and export ordinary Markdown whenever you want.</span></article>
+              <article><strong>Commercial-friendly</strong><span>MIT licensed for personal products, teams, clients, and businesses.</span></article>
             </div>
           </section>
         ) : (
