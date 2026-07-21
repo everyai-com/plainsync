@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { once } from "node:events";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -31,6 +32,21 @@ async function waitForServer(url, output) {
   throw new Error(`Production server did not start.\n${output.join("")}`);
 }
 
+async function stopServer(server) {
+  if (server.exitCode !== null) return;
+  const exited = once(server, "exit");
+  try {
+    if (process.platform === "win32") server.kill("SIGTERM");
+    else process.kill(-server.pid, "SIGTERM");
+  } catch {
+    server.kill("SIGTERM");
+  }
+  await Promise.race([
+    exited,
+    new Promise((resolve) => setTimeout(resolve, 3_000)),
+  ]);
+}
+
 test("portable server persists documents and rejects stale writes", async (context) => {
   const dataDirectory = await mkdtemp(join(tmpdir(), "plainsync-test-"));
   const port = 32_000 + (process.pid % 10_000);
@@ -44,11 +60,12 @@ test("portable server persists documents and rejects stale writes", async (conte
       PLAIN_SYNC_DATA_DIR: dataDirectory,
     },
     stdio: ["ignore", "pipe", "pipe"],
+    detached: process.platform !== "win32",
   });
   server.stdout.on("data", (chunk) => output.push(chunk.toString()));
   server.stderr.on("data", (chunk) => output.push(chunk.toString()));
   context.after(async () => {
-    server.kill("SIGTERM");
+    await stopServer(server);
     await rm(dataDirectory, { recursive: true, force: true });
   });
 
@@ -153,11 +170,12 @@ test("Yjs updates merge concurrent writers without a conflict response", async (
     cwd: new URL("../", import.meta.url),
     env: { ...process.env, PORT: String(port), PLAIN_SYNC_DATA_DIR: dataDirectory },
     stdio: ["ignore", "pipe", "pipe"],
+    detached: process.platform !== "win32",
   });
   server.stdout.on("data", (chunk) => output.push(chunk.toString()));
   server.stderr.on("data", (chunk) => output.push(chunk.toString()));
   context.after(async () => {
-    server.kill("SIGTERM");
+    await stopServer(server);
     await rm(dataDirectory, { recursive: true, force: true });
   });
   await waitForServer(base, output);
