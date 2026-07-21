@@ -15,6 +15,13 @@
       "when": 1784656665070,
       "tag": "0001_glorious_talon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1784657989110,
+      "tag": "0002_dizzy_pepper_potts",
+      "breakpoints": true
     }
   ]
 }

@@ -17,11 +17,11 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
-    const document = await authenticateDocument(id, bearerToken(request));
-    if (!document) {
+    const result = await authenticateDocument(id, bearerToken(request));
+    if (!result) {
       return NextResponse.json({ error: "Invalid document link." }, { status: 403 });
     }
-    return NextResponse.json({ document });
+    return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: "Document storage is unavailable." }, { status: 503 });
   }
@@ -40,9 +40,13 @@ export async function PUT(
       title: body.title,
       content: body.content,
       expectedRevision: body.expectedRevision,
+      actor: body.actor,
     });
     if (result.status === "unauthorized") {
       return NextResponse.json({ error: "Invalid document link." }, { status: 403 });
+    }
+    if (result.status === "forbidden") {
+      return NextResponse.json({ error: "This link cannot edit the document." }, { status: 403 });
     }
     if (result.status === "conflict") {
       return NextResponse.json(

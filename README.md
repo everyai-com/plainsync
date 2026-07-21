@@ -9,14 +9,17 @@ PlainSync is an open-source, local-first Markdown workspace for people and AI ag
 - Open, drag, edit, preview, and export `.md` files.
 - GitHub-Flavored Markdown, tables, task lists, and fenced code blocks.
 - Local drafts saved on the device with no account.
-- Private edit links backed by revision-checked synchronization.
-- Conflict protection when two versions change at once.
+- Conflict-free Yjs collaboration with live presence.
+- Separate editor, commenter, and read-only invitation links.
+- Text-anchored comments with resolve/reopen controls.
+- Automatic history, named snapshots, and one-click restoration.
+- Revision-aware REST API with a live OpenAPI document for agents.
 - Installable PWA for macOS and Windows.
 - Light and dark modes, keyboard shortcuts, and responsive layouts.
 - Cloudflare Workers + D1 deployment.
 - Docker/VPS deployment with a persistent local data volume.
 
-PlainSync is an alpha. Live synchronization currently polls every three seconds. CRDT collaboration, comments, suggestions, Git adapters, CLI file watching, and MCP tools are on the public roadmap.
+PlainSync is an alpha. Yjs updates currently travel over a small polling transport so the same collaboration model works on Cloudflare Workers and an ordinary VPS without extra infrastructure. Inline suggestion acceptance, Git adapters, CLI file watching, SDKs, and MCP tools are on the public roadmap.
 
 ## Start locally
 
@@ -70,19 +73,23 @@ The script finds or creates a D1 database, builds the application, wires the dat
 | --- | --- | --- |
 | Open Markdown | `⌘ O` | `Ctrl O` |
 | Save Markdown | `⌘ S` | `Ctrl S` |
-| Create/copy share link | `⌘ ⇧ S` | `Ctrl Shift S` |
+| Create/copy current share link | `⌘ ⇧ S` | `Ctrl Shift S` |
 
 ## How shared links work
 
-Creating a share link generates a random 192-bit edit key. Only the SHA-256 hash is stored on the server. The key remains in the URL fragment, which browsers do not send in normal HTTP requests; the PlainSync client sends it in an authorization header when reading or writing that document.
+Creating a shared document generates independent 192-bit editor, commenter, and read-only keys. Only SHA-256 hashes are stored on the server. Each key remains in the URL fragment, which browsers do not send in normal HTTP requests; the PlainSync client sends it in an authorization header when using the document API.
 
-Possession of an alpha share link grants edit access. Treat it like a private invitation. Account permissions and read-only links are planned before the stable release.
+Possession of a link grants the role shown when it was copied. Treat links like private invitations. Account-backed membership, expiry, and key rotation remain future work.
+
+## Agent API
+
+Every shared document is available through a revision-aware REST API. The running instance publishes its OpenAPI description at `/api/openapi`. See [the agent API guide](docs/AGENT-API.md) for safe read, edit, history, comment, and Yjs synchronization examples.
 
 ## Architecture
 
 The web application consumes the same Markdown and synchronization interfaces used by its API. Cloudflare stores shared documents in D1. The VPS build uses an atomic JSON store in the mounted `/data` volume, so it needs no external database.
 
-Read [ARCHITECTURE.md](ARCHITECTURE.md) for boundaries, storage choices, and the path toward CRDT collaboration and agent tools.
+Read [ARCHITECTURE.md](ARCHITECTURE.md) for boundaries, storage choices, and the path toward reusable collaboration packages and agent tools.
 
 ## Development
 

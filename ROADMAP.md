@@ -10,17 +10,18 @@
 
 ## Alpha 2 — genuine multiplayer
 
-- [ ] Yjs CRDT synchronization and presence
-- [ ] Threaded comments anchored to text
+- [x] Yjs CRDT synchronization and presence
+- [x] Thread-ready comments anchored with Yjs relative positions and text quotes
 - [ ] Suggest/accept/reject workflow
-- [ ] Read-only and suggestion-only links
-- [ ] Document history and named snapshots
+- [x] Read-only and commenter links
+- [x] Document history and named snapshots
 
 ## Alpha 3 — files, Git, and agents
 
 - [ ] Cross-platform CLI with file watching
 - [ ] GitHub and GitLab adapters
-- [ ] REST and TypeScript SDK
+- [x] Revision-aware REST API and OpenAPI description
+- [ ] TypeScript SDK
 - [ ] MCP resources and revision-aware tools
 - [ ] Agent provenance and suggestion-by-default permissions
 
