@@ -13,7 +13,7 @@ PlainSync has two supported deployment shapes. Both run the same application and
 ### Start
 
 ```bash
-git clone <your-plain-sync-repository>
+git clone https://github.com/everyai-com/plainsync.git
 cd plainsync
 docker compose up -d
 ```

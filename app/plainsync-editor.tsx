@@ -989,7 +989,7 @@ export function PlainSyncEditor() {
 
         <div className="sidebar-footer">
           <button onClick={() => void installApp()}><Laptop size={16} /> Install desktop app</button>
-          <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank" rel="noreferrer"><Braces size={16} /> Apache 2.0 source</a>
+          <a href="https://github.com/everyai-com/plainsync" target="_blank" rel="noreferrer"><Braces size={16} /> Apache 2.0 source</a>
         </div>
       </aside>
 

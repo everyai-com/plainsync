@@ -26,7 +26,7 @@ PlainSync is an alpha. Yjs updates currently travel over a small polling transpo
 PlainSync requires Node.js 22 or newer.
 
 ```bash
-git clone <your-plain-sync-repository>
+git clone https://github.com/everyai-com/plainsync.git
 cd plainsync
 npm install
 npm run dev
