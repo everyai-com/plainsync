@@ -76,3 +76,19 @@ PlainSync is an alpha. Read [SECURITY.md](SECURITY.md) before using it for sensi
 ## License
 
 [MIT](LICENSE). Use it, fork it, self-host it, rebrand it, and build a business with it.
+
+---
+
+## Part of the everyai-com agent stack
+
+Open-source infrastructure for local-first, governed AI agents:
+
+- [distillory](https://github.com/everyai-com/distillory) — local-first memory engine that reasons at ingestion
+- [agentprofile](https://github.com/everyai-com/agentprofile) — one agent identity — skills, credentials, memory — across every tool
+- [agent-ready](https://github.com/everyai-com/agent-ready) — turn any app into an MCP server + API + CLI, safe by default
+- [primer](https://github.com/everyai-com/primer) — live business context injected into any agent
+- [argus](https://github.com/everyai-com/argus) — cloud-native software verification with parallel browser testing
+- [mintly-alternative](https://github.com/everyai-com/mintly-alternative) — self-hostable documentation layer for humans + AI agents
+- [talltrack](https://github.com/everyai-com/talltrack) — sales calls in, publishable content out
+
+Built by [Phanindra Reddy](https://github.com/everyai-com) · [magicteams.ai](https://magicteams.ai)
